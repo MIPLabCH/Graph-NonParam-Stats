@@ -1,0 +1,9 @@
+{
+        "nb_samples": 100,
+        "nb_rands": 19,
+        "alpha": 0.05,
+        "n_iter": 20,
+        "time_idx": 9,
+        "node_amp": 10,
+        "correction": "bonferroni"
+}
