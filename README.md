@@ -18,4 +18,4 @@ Listed in `requirements.txt`.
 
 ### Core Module
 
-This repository hosts the core FlowGSP implementation powering the Statistical Testing on Directed Graphs by Surrogate Data Generation experiments and all reproducible figures from the paper.
+This repository hosts the core [FlowGSP](https://github.com/miki998/FlowGSP/) implementation powering the Statistical Testing on Directed Graphs by Surrogate Data Generation experiments and all reproducible figures from the paper.
