@@ -10,7 +10,7 @@ Usage:
     python -m experiments.run --list
 
     # Run a specific experiment
-    python -m experiments.run --paper paper_test_covar --experiment exp_asymmetry_erods_graph
+    python -m experiments.run --paper paper_test_covar --experiment exp_asymmetry_erdos_graph
 """
 
 import argparse
@@ -189,7 +189,7 @@ Examples:
     python -m experiments.run --list
 
   Run a specific experiment:
-    python -m experiments.run --paper paper_test_covar --experiment exp_asymmetry_erods_graph
+    python -m experiments.run --paper paper_test_covar --experiment exp_asymmetry_erdos_graph
 
 For more information, see experiments/README.md
         """,
@@ -213,7 +213,7 @@ For more information, see experiments/README.md
         "--experiment",
         "-e",
         type=str,
-        help="Name of the experiment directory (e.g., exp_asymmetry_erods_graph)",
+        help="Name of the experiment directory (e.g., exp_asymmetry_erdos_graph)",
     )
 
     parser.add_argument(

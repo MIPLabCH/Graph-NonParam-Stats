@@ -15,3 +15,7 @@ Listed in `requirements.txt`.
 #### Contents
 
 - Figures from paper ``Statistical Testing on Directed Graphs by Surrogate Data Generation"
+
+### Core Module
+
+This repository hosts the core FlowGSP implementation powering the Statistical Testing on Directed Graphs by Surrogate Data Generation experiments and all reproducible figures from the paper.
