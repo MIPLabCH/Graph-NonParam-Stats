@@ -8,7 +8,7 @@ This is the repository gathering the experiments for the paper ``Statistical Tes
 python -m experiments.run --list
 
 # Run a specific experiment
-python -m experiments.run --paper paper_test_covar --experiment exp_asymmetry_erdos_graph
+python -m experiments.run --paper paper_surrogates_stats --experiment exp_non-linearity
 ```
 
 In each experiment folders are located config files you can change to modify the input parameters to experiments.
