@@ -1,5 +1,7 @@
 """
 Experiment: Graph Non-Linearity Testing
+
+This experiment aims to evaluate the ability of different surrogate methods to detect non-linearities in graph signals. We will generate synthetic graph signals with known non-linearities and compare the performance of directed, undirected, and naive surrogate methods in identifying these non-linearities. The experiment will be conducted on a real-world graph (e.g., USA state graph) to ensure relevance to practical applications.
 """
 
 import os
@@ -38,9 +40,11 @@ DATA_DIR = os.path.join(EXPERIMENT_DIR, "data")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 
 
-def run(save_results: bool = True, verbose: bool = True) -> dict:
+def run(
+    save_results: bool = True, verbose: bool = True, recompute: bool = False
+) -> dict:
     """
-    Run experiment.
+    Run the non-linearity detection experiment.
 
     Parameters
     ----------
@@ -102,7 +106,9 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
         fig16,
         fig17,
     ) = (None,) * 17
-    experiments = Experiments(config, verbose=verbose, logger=logger)
+    experiments = Experiments(
+        config, verbose=verbose, logger=logger, recompute=recompute
+    )
     # Plot 1: Singularities detection accuracy vs number of nodes
     logger.info(
         "\nRunning Experiment 1: Singularities detection accuracy vs number of nodes"
@@ -141,109 +147,51 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
 
     # Save results
     if save_results:
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-        if fig1 is not None:
-            fig1.savefig(
-                os.path.join(RESULTS_DIR, "increasing_nodes.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig2 is not None:
-            fig2.savefig(
-                os.path.join(RESULTS_DIR, "ground_truth.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig3 is not None:
-            fig3.savefig(
-                os.path.join(RESULTS_DIR, "statistics_directed.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig4 is not None:
-            fig4.savefig(
-                os.path.join(RESULTS_DIR, "statistics_undirected.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig5 is not None:
-            fig5.savefig(
-                os.path.join(RESULTS_DIR, "statistics_naive.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig6 is not None:
-            fig6.savefig(
-                os.path.join(RESULTS_DIR, "predicted_connectivity_directed.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig7 is not None:
-            fig7.savefig(
-                os.path.join(RESULTS_DIR, "predicted_connectivity_undirected.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig8 is not None:
-            fig8.savefig(
-                os.path.join(RESULTS_DIR, "predicted_connectivity_naive.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig9 is not None:
-            fig9.savefig(
-                os.path.join(RESULTS_DIR, "ground_truth_connectivity.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig10 is not None:
-            fig10.savefig(
-                os.path.join(RESULTS_DIR, "covariance_denser.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig11 is not None:
-            fig11.savefig(
-                os.path.join(RESULTS_DIR, "one_diffusion_timecourse.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig12 is not None:
-            fig12.savefig(
-                os.path.join(RESULTS_DIR, "one_null_distribution_diffusion_sig.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig13 is not None:
-            fig13.savefig(
-                os.path.join(RESULTS_DIR, "one_null_distribution_diffusion_nonsig.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig14 is not None:
-            fig14.savefig(
-                os.path.join(RESULTS_DIR, "one_roc_curve.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig15 is not None:
-            fig15.savefig(
-                os.path.join(RESULTS_DIR, "multi_diffusion_timecourse.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig16 is not None:
-            fig16.savefig(
-                os.path.join(RESULTS_DIR, "multi_roc_curve.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig17 is not None:
-            fig17.savefig(
-                os.path.join(RESULTS_DIR, "auc_across_densities.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
+        from experiments.logging_utils import save_figures
+
+        save_figures(
+            figures=[
+                fig1,
+                fig2,
+                fig3,
+                fig4,
+                fig5,
+                fig6,
+                fig7,
+                fig8,
+                fig9,
+                fig10,
+                fig11,
+                fig12,
+                fig13,
+                fig14,
+                fig15,
+                fig16,
+                fig17,
+            ],
+            filenames=[
+                "increasing_nodes.png",
+                "ground_truth.png",
+                "statistics_directed.png",
+                "statistics_undirected.png",
+                "statistics_naive.png",
+                "predicted_connectivity_directed.png",
+                "predicted_connectivity_undirected.png",
+                "predicted_connectivity_naive.png",
+                "ground_truth_connectivity.png",
+                "covariance_denser.png",
+                "one_diffusion_timecourse.png",
+                "one_null_distribution_diffusion_sig.png",
+                "one_null_distribution_diffusion_nonsig.png",
+                "one_roc_curve.png",
+                "multi_diffusion_timecourse.png",
+                "multi_roc_curve.png",
+                "auc_across_densities.png",
+            ],
+            results_dir=RESULTS_DIR,
+            logger=logger,
+            dpi=300,
+        )
 
         results_file = os.path.join(RESULTS_DIR, "experiment_results.json")
         with open(results_file, "w") as f:
@@ -256,10 +204,13 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
 
 
 class Experiments:
-    def __init__(self, config: dict, verbose: bool = True, logger=None):
+    def __init__(
+        self, config: dict, verbose: bool = True, logger=None, recompute: bool = False
+    ):
         self.config = config
         self.verbose = verbose
         self.logger = logger
+        self.recompute = recompute
         self.path_to_resources = "./data/"
 
         self.fontsize = 10
@@ -302,23 +253,19 @@ class Experiments:
         number_of_disrupts = [5, 9, 14, 19, 24]
         alpha = self.config["alpha"]
 
-        recompute_scores = False
+        recompute_scores = self.recompute
         if os.path.exists(os.path.join(DATA_DIR, "singular_scores.pkl")):
             try:
                 (
-                    scores_dir,
-                    scores_und,
-                    scores_naive,
-                    ground,
-                    twotail_pvals,
-                    twotail_pvals2,
-                    twotail_pvals3,
+                    ground_store,
+                    twotail_pvals_store,
+                    twotail_pvals_store2,
+                    twotail_pvals_store3,
                 ) = load(os.path.join(DATA_DIR, "singular_scores.pkl"))
-                if set(scores_dir.keys()) != set(number_of_disrupts):
+                if set(ground_store.keys()) != set(number_of_disrupts):
                     recompute_scores = True
             except Exception as e:
-                if self.verbose:
-                    print(f"Error loading scores: {e}")
+                self.logger.info(f"Error loading scores: {e}")
                 recompute_scores = True
         else:
             recompute_scores = True
@@ -327,11 +274,12 @@ class Experiments:
                 np.eye(self.graph.N)
             ).real
             np.testing.assert_almost_equal(covariance_matrix, covariance_matrix.T)
+            twotail_pvals_store = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
+            twotail_pvals_store2 = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
+            twotail_pvals_store3 = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
+            ground_store = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
 
-            scores_dir = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
-            scores_und = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
-            scores_naive = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
-            np.random.seed(0)
+            np.random.seed(95)
             for nbdisrupt in tqdm(
                 number_of_disrupts, desc="Number of Disrupts", disable=not self.verbose
             ):
@@ -390,51 +338,62 @@ class Experiments:
                             for nidx in range(self.graph.N)
                         ]
                     )
-
-                    if self.config["correction"] == "bonferroni":
-                        decision = (1 - twotail_pvals) <= alpha / mult
-                        decision2 = (1 - twotail_pvals2) <= alpha / mult
-                        decision3 = (1 - twotail_pvals3) <= alpha / mult
-
-                    elif self.config["correction"] == "fdr":
-                        decision, _, _, _ = multipletests(
-                            1 - twotail_pvals,
-                            alpha=self.config["alpha"],
-                            method="fdr_bh",
-                        )
-                        decision2, _, _, _ = multipletests(
-                            1 - twotail_pvals2,
-                            alpha=self.config["alpha"],
-                            method="fdr_bh",
-                        )
-                        decision3, _, _, _ = multipletests(
-                            1 - twotail_pvals3,
-                            alpha=self.config["alpha"],
-                            method="fdr_bh",
-                        )
-
-                    else:
-                        raise ValueError("Unknown correction method")
-
-                    score = np.mean(decision == ground)
-                    score2 = np.mean(decision2 == ground)
-                    score3 = np.mean(decision3 == ground)
-                    scores_dir[nbdisrupt].append(score)
-                    scores_und[nbdisrupt].append(score2)
-                    scores_naive[nbdisrupt].append(score3)
+                    twotail_pvals_store[nbdisrupt].append(twotail_pvals)
+                    twotail_pvals_store2[nbdisrupt].append(twotail_pvals2)
+                    twotail_pvals_store3[nbdisrupt].append(twotail_pvals3)
+                    ground_store[nbdisrupt].append(ground)
 
             save(
                 os.path.join(DATA_DIR, "singular_scores.pkl"),
                 (
-                    scores_dir,
-                    scores_und,
-                    scores_naive,
-                    ground,
-                    twotail_pvals,
-                    twotail_pvals2,
-                    twotail_pvals3,
+                    ground_store,
+                    twotail_pvals_store,
+                    twotail_pvals_store2,
+                    twotail_pvals_store3,
                 ),
             )
+
+        scores_dir = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
+        scores_und = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
+        scores_naive = {nbdisrupt: [] for nbdisrupt in number_of_disrupts}
+
+        for nbdisrupt in number_of_disrupts:
+            for ground, twotail_pvals, twotail_pvals2, twotail_pvals3 in zip(
+                ground_store[nbdisrupt],
+                twotail_pvals_store[nbdisrupt],
+                twotail_pvals_store2[nbdisrupt],
+                twotail_pvals_store3[nbdisrupt],
+            ):
+                if self.config["correction"] == "bonferroni":
+                    decision = (1 - twotail_pvals) <= alpha / mult
+                    decision2 = (1 - twotail_pvals2) <= alpha / mult
+                    decision3 = (1 - twotail_pvals3) <= alpha / mult
+
+                elif self.config["correction"] == "fdr":
+                    decision, _, _, _ = multipletests(
+                        1 - twotail_pvals,
+                        alpha=self.config["alpha"],
+                        method="fdr_bh",
+                    )
+                    decision2, _, _, _ = multipletests(
+                        1 - twotail_pvals2,
+                        alpha=self.config["alpha"],
+                        method="fdr_bh",
+                    )
+                    decision3, _, _, _ = multipletests(
+                        1 - twotail_pvals3,
+                        alpha=self.config["alpha"],
+                        method="fdr_bh",
+                    )
+                else:
+                    raise ValueError("Unknown correction method")
+
+                score = np.mean(decision == ground)
+                score2 = np.mean(decision2 == ground)
+                score3 = np.mean(decision3 == ground)
+                scores_dir[nbdisrupt].append(score)
+                scores_und[nbdisrupt].append(score2)
+                scores_naive[nbdisrupt].append(score3)
 
         # Artificially adding some very small variance to avoid issues with boxplot in color
         var = 4e-3
@@ -538,15 +497,14 @@ class Experiments:
         stats_values = [ground, twotail_pvals, twotail_pvals2, twotail_pvals3]
 
         figs = []
-        if self.verbose:
-            print(
-                "Minimum stats in ground truth: ",
-                np.min(twotail_pvals[np.array(ground).astype(bool)]),
-            )
-            print(
-                "Maximum stats not in ground truth: ",
-                np.max(twotail_pvals[~np.array(ground).astype(bool)]),
-            )
+        self.logger.info(
+            "Minimum stats in ground truth: %f",
+            np.min(twotail_pvals[np.array(ground).astype(bool)]),
+        )
+        self.logger.info(
+            "Maximum stats not in ground truth: %f",
+            np.max(twotail_pvals[~np.array(ground).astype(bool)]),
+        )
 
         for sidx in range(len(stats_values)):
             fig, ax = plt.subplots(figsize=(5, 3))
@@ -649,7 +607,10 @@ class Experiments:
             (self.config["nb_rands"] + 1) * mult / nb_samples
         )  # to have enough surrogates after correction
 
-        if os.path.exists(os.path.join(DATA_DIR, "covariance_illustration.pkl")):
+        if (
+            os.path.exists(os.path.join(DATA_DIR, "covariance_illustration.pkl"))
+            and not self.recompute
+        ):
             (
                 offdiagonals,
                 covariance_pvals_direct,
@@ -971,19 +932,28 @@ class Experiments:
         scores_dir = {prop: [] for prop in proportion}
         scores_und = {prop: [] for prop in proportion}
         scores_naive = {prop: [] for prop in proportion}
+        rec_fpos_dir = {prop: [] for prop in proportion}
+        rec_fpos_und = {prop: [] for prop in proportion}
+        rec_fpos_naive = {prop: [] for prop in proportion}
+
         samples = {prop: [] for prop in proportion}
 
-        recompute_scores = False
+        recompute_scores = self.recompute
         if os.path.exists(os.path.join(DATA_DIR, "covariance_scores.pkl")):
             try:
-                scores_dir, scores_und, scores_naive, samples = load(
-                    os.path.join(DATA_DIR, "covariance_scores.pkl")
-                )
+                (
+                    scores_dir,
+                    scores_und,
+                    scores_naive,
+                    rec_fpos_dir,
+                    rec_fpos_und,
+                    rec_fpos_naive,
+                    samples,
+                ) = load(os.path.join(DATA_DIR, "covariance_scores.pkl"))
                 if set(scores_dir.keys()) != set(proportion):
                     recompute_scores = True
             except Exception as e:
-                if self.verbose:
-                    print(f"Error loading scores: {e}")
+                self.logger.info(f"Error loading scores: {e}")
                 recompute_scores = True
         else:
             recompute_scores = True
@@ -1165,6 +1135,20 @@ class Experiments:
                         (undirect_pvals == offdiagonals).astype(int).mean()
                     )
                     accuracy_naive = (naive_pvals == offdiagonals).astype(int).mean()
+
+                    recall_direct = direct_pvals[offdiagonals == 1].mean()
+                    recall_undirect = undirect_pvals[offdiagonals == 1].mean()
+                    recall_naive = naive_pvals[offdiagonals == 1].mean()
+                    false_positive_direct = direct_pvals[offdiagonals == 0].mean()
+                    false_positive_undirect = undirect_pvals[offdiagonals == 0].mean()
+                    false_positive_naive = naive_pvals[offdiagonals == 0].mean()
+
+                    rec_fpos_dir[prop].append((recall_direct, false_positive_direct))
+                    rec_fpos_und[prop].append(
+                        (recall_undirect, false_positive_undirect)
+                    )
+                    rec_fpos_naive[prop].append((recall_naive, false_positive_naive))
+
                     scores_dir[prop].append(accuracy_direct)
                     scores_und[prop].append(accuracy_undirect)
                     scores_naive[prop].append(accuracy_naive)
@@ -1172,7 +1156,15 @@ class Experiments:
 
             save(
                 os.path.join(DATA_DIR, "covariance_scores.pkl"),
-                (scores_dir, scores_und, scores_naive, samples),
+                (
+                    scores_dir,
+                    scores_und,
+                    scores_naive,
+                    rec_fpos_dir,
+                    rec_fpos_und,
+                    rec_fpos_naive,
+                    samples,
+                ),
             )
 
         # Plotting
@@ -1244,6 +1236,75 @@ class Experiments:
         plt.tight_layout()
         if not self.verbose:
             plt.close()
+        plt.show()
+
+        # Plot False Positives
+
+        data_recall = []
+        data_fpos = []
+        for prop in proportion:
+            for recall, fpos in rec_fpos_dir[prop]:
+                data_recall.append(["Directed", prop, recall])
+                data_fpos.append(["Directed", prop, fpos])
+            for recall, fpos in rec_fpos_und[prop]:
+                data_recall.append(["Undirected", prop, recall])
+                data_fpos.append(["Undirected", prop, fpos])
+            for recall, fpos in rec_fpos_naive[prop]:
+                data_recall.append(["Naive", prop, recall])
+                data_fpos.append(["Naive", prop, fpos])
+
+        df_fpos = pd.DataFrame(
+            data_fpos, columns=["Type", "Number of Disruptions", "False Positive Rate"]
+        )
+
+        # Plot False Positive Rate
+        fig_fpos, ax_fpos = plt.subplots(figsize=(5, 3))
+        sns.boxplot(
+            x="Number of Disruptions",
+            y="False Positive Rate",
+            hue="Type",
+            data=df_fpos,
+            palette={"Directed": "red", "Undirected": "blue", "Naive": "black"},
+            linewidth=0.5,
+            boxprops=dict(alpha=1),
+            whiskerprops=dict(linewidth=0.2),
+            capprops=dict(linewidth=1),
+            flierprops=dict(marker="o", markersize=1, alpha=0.5),
+            order=sorted(proportion, reverse=True),
+            ax=ax_fpos,
+        )
+        ax_fpos.set_xlabel(
+            "", fontsize=self.fontsize, fontname="Helvetica", labelpad=10
+        )
+        ax_fpos.set_xticks(np.arange(len(labels)))
+        ax_fpos.set_xticklabels(labels, fontsize=self.fontsize, fontname="Helvetica")
+        ax_fpos.set_ylabel(
+            "False Positive Rate",
+            fontsize=self.fontsize,
+            fontname="Helvetica",
+            labelpad=10,
+        )
+        ax_fpos.set_yticklabels(
+            ax_fpos.get_yticklabels(), fontsize=self.fontsize, fontname="Helvetica"
+        )
+        for t in [0.5 + i for i in range(len(proportion))]:
+            ax_fpos.axvline(x=t, color="black", linestyle="--", linewidth=1, alpha=0.1)
+        ax_fpos.xaxis.set_label_position("top")
+        ax_fpos.xaxis.tick_top()
+        ax_fpos.legend(
+            loc="upper right", prop={"family": "Helvetica", "size": self.fontsize}
+        )
+        ax_fpos.grid(
+            visible=True,
+            which="major",
+            axis="y",
+            linestyle="--",
+            linewidth=0.5,
+            alpha=0.7,
+        )
+        plt.tight_layout()
+        if not self.verbose:
+            plt.close(fig_fpos)
         plt.show()
 
         return fig
@@ -1500,8 +1561,13 @@ class Experiments:
                 plt.close()
             plt.show()
 
-        if os.path.exists(
-            os.path.join(DATA_DIR, "surrogates_data/ROC_experiments/one_ROC_curves.pkl")
+        if (
+            os.path.exists(
+                os.path.join(
+                    DATA_DIR, "surrogates_data/ROC_experiments/one_ROC_curves.pkl"
+                )
+            )
+            and not self.recompute
         ):
             S1, S2, S3, F1, F2, F3 = load(
                 os.path.join(

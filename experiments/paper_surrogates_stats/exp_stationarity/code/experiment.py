@@ -1,5 +1,7 @@
 """
 Experiment: Stationarity and White Noise on Directed Graphs
+
+This experiment investigates the properties of white noise generated on directed graphs using the FlowGSP framework. We compare the mean and variance of white noise generated on a directed graph and its undirected counterpart, and visualize the covariance structure of the generated signals.
 """
 
 import os
@@ -26,9 +28,11 @@ DATA_DIR = os.path.join(EXPERIMENT_DIR, "data")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 
 
-def run(save_results: bool = True, verbose: bool = True) -> dict:
+def run(
+    save_results: bool = True, verbose: bool = True, recompute: bool = False
+) -> dict:
     """
-    Run experiment.
+    Run the stationarity and white noise surrogates experiment.
 
     Parameters
     ----------
@@ -71,7 +75,9 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
 
     logger.info(f"\nConfiguration: {config}")
 
-    experiments = Experiments(config, verbose=verbose)
+    experiments = Experiments(
+        config, verbose=verbose, logger=logger, recompute=recompute
+    )
     # Plot 1: Create flower graph and plot
     fig1, fig2, fig3 = experiments.run_experiment1()
 
@@ -85,36 +91,21 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
 
     # Save results
     if save_results:
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-        fig1.savefig(
-            os.path.join(RESULTS_DIR, "wn-1d-plot_syn.png"),
+        from experiments.logging_utils import save_figures
+
+        save_figures(
+            figures=[fig1, fig2, fig3, fig4, fig5, fig6],
+            filenames=[
+                "wn-1d-plot_syn.png",
+                "wn-variance_graph_visualization_syn.png",
+                "wn-covar_syn.png",
+                "wn-1d-plot_usa.png",
+                "wn-variance_graph_visualization_usa.png",
+                "wn-covar_usa.png",
+            ],
+            results_dir=RESULTS_DIR,
+            logger=logger,
             dpi=300,
-            bbox_inches="tight",
-        )
-        fig2.savefig(
-            os.path.join(RESULTS_DIR, "wn-variance_graph_visualization_syn.png"),
-            dpi=300,
-            bbox_inches="tight",
-        )
-        fig3.savefig(
-            os.path.join(RESULTS_DIR, "wn-covar_syn.png"),
-            dpi=300,
-            bbox_inches="tight",
-        )
-        fig4.savefig(
-            os.path.join(RESULTS_DIR, "wn-1d-plot_usa.png"),
-            dpi=300,
-            bbox_inches="tight",
-        )
-        fig5.savefig(
-            os.path.join(RESULTS_DIR, "wn-variance_graph_visualization_usa.png"),
-            dpi=300,
-            bbox_inches="tight",
-        )
-        fig6.savefig(
-            os.path.join(RESULTS_DIR, "wn-covar_usas.png"),
-            dpi=300,
-            bbox_inches="tight",
         )
 
         results_file = os.path.join(RESULTS_DIR, "experiment_results.json")
@@ -128,10 +119,13 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
 
 
 class Experiments:
-    def __init__(self, config: dict, verbose: bool = True, logger=None):
+    def __init__(
+        self, config: dict, verbose: bool = True, logger=None, recompute: bool = False
+    ):
         self.config = config
         self.verbose = verbose
         self.logger = logger
+        self.recompute = recompute
         self.path_to_resources = "./data/"
 
     def run_experiment1(self):

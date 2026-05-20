@@ -1,0 +1,10 @@
+{
+        "nb_repeat": 1000,
+        "grid_size": 20,
+        "vortex_radius": 6,
+        "max_distance": 2.5,
+        "parabola_scale": 2.0,
+        "curve_scale": 1,
+        "upsample_factor": 4,
+        "bump_scale": 50.0
+}

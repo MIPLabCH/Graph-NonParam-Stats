@@ -1,5 +1,10 @@
 """
 Experiment: Graph Temperature Data Analysis
+
+This experiment analyzes temperature data from various stations in Brittany, France, using graph signal processing techniques. The main steps include:
+1. Graph Creation: Constructing a graph based on the geographical locations of the temperature stations and their pairwise distances.
+2. Irregular Days Detection: Using surrogate data to identify days with significant deviations in temperature patterns.
+3. Statistics Over Time of the Year: Analyzing how the temperature signal's properties evolve throughout the year, particularly for coastal vs. inland stations.
 """
 
 import os
@@ -14,6 +19,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from joblib import Parallel, delayed
 import matplotlib.patches as patches
+from statsmodels.stats.multitest import multipletests
 
 # Import FlowGSP components
 from flowgsp.graphs import Graph
@@ -31,9 +37,11 @@ DATA_DIR = os.path.join(EXPERIMENT_DIR, "data")
 RESULTS_DIR = os.path.join(EXPERIMENT_DIR, "results")
 
 
-def run(save_results: bool = True, verbose: bool = True) -> dict:
+def run(
+    save_results: bool = True, verbose: bool = True, recompute: bool = False
+) -> dict:
     """
-    Run experiment.
+    Run the temperature data analysis experiment.
 
     Parameters
     ----------
@@ -76,8 +84,9 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
 
     logger.info(f"\nConfiguration: {config}")
 
-    fig1, fig2, fig3, fig4, fig5 = None, None, None, None, None
-    experiments = Experiments(config, verbose=verbose)
+    experiments = Experiments(
+        config, verbose=verbose, logger=logger, recompute=recompute
+    )
     # Plot 1: Graph Creation
     logger.info("\nRunning Graph Creation...")
     fig1 = experiments.run_experiment1()
@@ -104,37 +113,21 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
 
     # Save results
     if save_results:
-        os.makedirs(RESULTS_DIR, exist_ok=True)
-        if fig1 is not None:
-            fig1.savefig(
-                os.path.join(RESULTS_DIR, "signal_covariances.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig2 is not None:
-            fig2.savefig(
-                os.path.join(RESULTS_DIR, "irregular_days_detection_directed.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig3 is not None:
-            fig3.savefig(
-                os.path.join(RESULTS_DIR, "irregular_days_detection_undirected.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig4 is not None:
-            fig4.savefig(
-                os.path.join(RESULTS_DIR, "timecourse_statistics_coastal.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
-        if fig5 is not None:
-            fig5.savefig(
-                os.path.join(RESULTS_DIR, "timecourse_statistics_inland.png"),
-                dpi=300,
-                bbox_inches="tight",
-            )
+        from experiments.logging_utils import save_figures
+
+        save_figures(
+            figures=[fig1, fig2, fig3, fig4, fig5],
+            filenames=[
+                "signal_covariances.png",
+                "irregular_days_detection_directed.png",
+                "irregular_days_detection_undirected.png",
+                "timecourse_statistics_coastal.png",
+                "timecourse_statistics_inland.png",
+            ],
+            results_dir=RESULTS_DIR,
+            logger=logger,
+            dpi=300,
+        )
 
         results_file = os.path.join(RESULTS_DIR, "experiment_results.json")
         with open(results_file, "w") as f:
@@ -147,20 +140,25 @@ def run(save_results: bool = True, verbose: bool = True) -> dict:
 
 
 class Experiments:
-    def __init__(self, config: dict, verbose: bool = True, logger=None):
+    def __init__(
+        self, config: dict, verbose: bool = True, logger=None, recompute: bool = False
+    ):
         self.config = config
         self.verbose = verbose
         self.logger = logger
+        self.recompute = recompute
         self.path_to_resources = "./data/temperature_bretagne_graph_data/"
         self.fontsize = 10
         self._create_graph()
 
     def _create_graph(self):
-        if os.path.exists(
-            os.path.join(self.path_to_resources, "temperature_graph_all.pkl")
+        if (
+            os.path.exists(
+                os.path.join(self.path_to_resources, "temperature_graph_all.pkl")
+            )
+            and not self.recompute
         ):
-            if self.verbose:
-                print("Loading precomputed temperature graph data...")
+            self.logger.info("Loading precomputed temperature graph data...")
             # data = load(
             #     os.path.join(self.path_to_resources, "temperature_graph_all.pkl")
             # )
@@ -207,8 +205,9 @@ class Experiments:
             plt.show()
             return fig
         else:
-            if self.verbose:
-                print("Precomputed data not found. Processing raw temperature data...")
+            self.logger.info(
+                "Precomputed data not found. Processing raw temperature data..."
+            )
             import netCDF4
 
             # Extracting temperature data from netCDF files
@@ -348,15 +347,17 @@ class Experiments:
             add_edges = iter_A - prev_A
             iter_A = prev_A + add_edges * lbd
             U = np.linalg.eig(iter_A)[1]
-            if self.verbose:
-                print(f"condition number {np.linalg.cond(U)}")
+            self.logger.info(f"condition number {np.linalg.cond(U)}")
             if np.linalg.cond(U) < 1e2:
-                if self.verbose:
-                    print("Good graph found - Parameters")
-                    print(f"number of edges added: {np.abs(add_edges).sum()}")
-                    print(f"Number of nodes in connected_subgraph: {len(g.nodes)}")
-                    print(f"Number of edges in connected_subgraph: {len(g.edges)}")
-                    print()
+                self.logger.info("Good graph found - Parameters")
+                self.logger.info(f"number of edges added: {np.abs(add_edges).sum()}")
+                self.logger.info(
+                    f"Number of nodes in connected_subgraph: {len(g.nodes)}"
+                )
+                self.logger.info(
+                    f"Number of edges in connected_subgraph: {len(g.edges)}"
+                )
+                self.logger.info("")
                 good_adj.append((prev_A, iter_A))
                 good_graph.append(g)
 
@@ -542,14 +543,13 @@ class Experiments:
             plt.close()
         plt.show()
 
-        if self.verbose:
-            print("Stationary levels (Directed, Undirected):")
-            print(
-                (
-                    self.surrogate.stationary_level(demeaned_sig),
-                    self.surrogate_u.stationary_level(demeaned_sig),
-                )
+        self.logger.info("Stationary levels (Directed, Undirected):")
+        self.logger.info(
+            (
+                self.surrogate.stationary_level(demeaned_sig),
+                self.surrogate_u.stationary_level(demeaned_sig),
             )
+        )
 
         return fig
 
@@ -564,8 +564,13 @@ class Experiments:
             ]
         )
 
-        if os.path.exists(
-            os.path.join(DATA_DIR, f"null_distributions_tempdata_{nrands}_rands.pkl")
+        if (
+            os.path.exists(
+                os.path.join(
+                    DATA_DIR, f"null_distributions_tempdata_{nrands}_rands.pkl"
+                )
+            )
+            and not self.recompute
         ):
             null_distrib_directed, null_distrib_undirected = load(
                 os.path.join(
@@ -635,23 +640,46 @@ class Experiments:
         multi_compare = (
             self.graph_sig.shape[0] * self.graph_sig.shape[1]
         )  # Number of tests
-        alpha = 0.05 / multi_compare
-
         cmap = plt.get_cmap("inferno")
 
         pvalues = [pvalues_direct, pvalues_undirect]
         poses = [self.pos_dir, self.pos_dir]
         figs = []
+        norm_max = 0
         for k in range(2):
             pos = {
                 i: poses[k][self.graph_nodes_id[i]]
                 for i in range(len(self.graph_nodes_id))
             }
             pos_inv = {v: k for k, v in pos.items()}
-            node_colors = (pvalues[k] < alpha).astype(float).sum(
-                axis=1
-            ) / self.graph_sig.shape[1]
-            node_remax = node_colors / (node_colors.max() + 0.1)
+            if self.config["correction"] == "bonferroni":
+                decision = (
+                    (pvalues[k] < (self.config["alpha"] / multi_compare))
+                    .astype(float)
+                    .sum(axis=1)
+                )
+
+            elif self.config["correction"] == "fdr":
+                decision = (
+                    multipletests(
+                        pvalues[k].flatten(),
+                        alpha=self.config["alpha"],
+                        method="fdr_bh",
+                    )[0]
+                    .reshape(pvalues[k].shape)
+                    .sum(axis=1)
+                )
+            else:
+                raise ValueError("Invalid correction method specified in config.")
+
+            # node_colors = decision / self.graph_sig.shape[0]
+            node_colors = (
+                decision / 150
+            )  # so that the color matches the colobar up to 100 significant days, and saturates after that
+            print(node_colors)
+            norm_max = min(max(norm_max, node_colors.max()), 1)
+
+            node_remax = node_colors / (norm_max + 0.1)
 
             # Plot all polygons from the GeoJSON file
             fig, ax = plt.subplots(figsize=(5, 3))
@@ -724,7 +752,7 @@ class Experiments:
             for label in cbar.ax.get_yticklabels():
                 label.set_fontname("Helvetica")
 
-            ticklabels = [0, 20, 40, 60, 80, 100]
+            ticklabels = [0, 30, 60, 90, 120, 150]
             cbar.set_ticks(np.array([0, 0.2, 0.4, 0.6, 0.8, 1]))
             # cbar.set_ticklabels(
             #     (
@@ -756,8 +784,7 @@ class Experiments:
         node2plots = [12, 1]
         colors = ["r", "b"]
         for nidx, node2plot in enumerate(node2plots):
-            if self.verbose:
-                print(f"Station {self.graph_nodes_id[node2plot]}")
+            self.logger.info(f"Station {self.graph_nodes_id[node2plot]}")
 
             fig, ax = plt.subplots(1, figsize=(12, 2.3))
 

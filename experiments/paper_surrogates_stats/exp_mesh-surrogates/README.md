@@ -1,4 +1,4 @@
-# Experiment: Graph Non-Linearity Testing
+# Experiment: Stationarity and White Noise on Directed Graphs
 
 ## Objectives
 
@@ -66,9 +66,4 @@ exp1_advection_diffusion/
 
 | Sub-experiment | Description |
 |----------------|-------------|
-| `run_experiment1` | Tests surrogate-based detection of non-linearity using singular value scores across various numbers of signal disruptions |
-| `run_experiment2` | Tests surrogate-based detection of covariance structure with varying off-diagonal covariance injection |
-| `run_experiment3` | Evaluates covariance detection accuracy (AUC) across different sparsity proportions using directed, undirected, and naive surrogates |
-| `run_experiment4` | Simulates and visualizes diffusion time-course from a single active node using the VAR generative model |
-| `run_experiment5` | Simulates diffusion from multiple simultaneously active nodes and evaluates surrogate-based detection performance |
-| `run_experiment6` | Evaluates surrogate detection AUC as a function of the number of simultaneously active nodes |
+| `run_experiment1` | Generates directed random surrogate signals from a point-source signal on a 3D mesh graph and visualizes the original and a surrogate on the surface |
